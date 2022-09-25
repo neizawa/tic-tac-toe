@@ -1,55 +1,74 @@
 require 'pry-byebug'
 
 class Player
-  attr_accessor :name, :letter
+  attr_accessor :name, :letter, :numbers
 
-  def initialize(name, letter)
-    # puts 'Enter your name and choose either "X" or "O":'
-    @name   = name # gets.chomp
-    @letter = letter # gets.chomp
-  end
-
-  def input
-    print "#{name}, type a number where you want to put your #{letter}: "
-    gets.chomp
+  def initialize(letter)
+    print "Enter name for an #{letter} player: "
+    @name    = gets.chomp
+    @letter  = letter
+    @numbers = []
   end
 end
 
 class Game
-  attr_accessor :board, :state, :used_numbers
+  attr_accessor :player1, :player2, :board, :used_numbers
+
+  LINES = [[1,2,3],[4,5,6],[7,8,9],[1,4,7],[2,5,8],[3,6,9],[1,5,9],[3,5,7]]
 
   def initialize
-    @player1  = Player.new('Oleg', 'X')
-    @player2  = Player.new('Sanzhar', 'O')
-
-    @board    = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    @state    = true
+    @player1      = Player.new('X')
+    @player2      = Player.new('O')
+    @board        = [1,2,3,4,5,6,7,8,9]
     @used_numbers = []
 
     puts 'Game starts now!'
+    play_turns
+  end
 
-    while @state
-      turn(@player1)
-      turn(@player2)
+  def play_turns
+    9.times do
+      turn(player1)
+      turn(player2)
+    end
+  end
+
+  def check_lines
+    LINES.each do |line|
+      if player1.numbers.select { |number| line.include? number } == line then finish_game(player1, player2); end
+      if player2.numbers.select { |number| line.include? number } == line then finish_game(player2, player1); end
+    end
+  end
+
+  def finish_game(player, opponent)
+    puts "Game finished! #{player.name} won #{opponent.name}."
+    Game.new
+  end
+
+  def input
+    number = gets.chomp.to_i
+
+    if used_numbers.include? number
+      print 'Slot is already used. Please type another number: '
+      input
+    else
+      number
     end
   end
 
   def turn(player)
     show_board
-    number = player.input
-
-    while used_numbers.include? number.to_i
-      print 'Number is already used. Please type another number: '
-      player.input
-    end
+    print "#{player.name}, type a number of a slot where you want to put your #{player.letter}: "
+    number = input
 
     change_board(number, player.letter)
+    used_numbers.push(number)
+    player.numbers.push(number)
+    check_lines
   end
 
   def change_board(number, letter)
-    number = number.to_i - 1
-    board[number] = letter
-    used_numbers.push(number + 1)
+    board[number - 1] = letter
   end
 
   def show_board
@@ -62,4 +81,4 @@ class Game
   end
 end
 
-game = Game.new
+Game.new
