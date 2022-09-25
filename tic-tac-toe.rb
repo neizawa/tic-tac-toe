@@ -1,3 +1,5 @@
+require 'pry-byebug'
+
 class Player
   attr_accessor :name, :letter
 
@@ -11,6 +13,12 @@ class Player
     Game.show_board
     puts "#{name}, type a number where you want to put your #{letter}:"
     number = gets.chomp
+
+    while Game.used_numbers.include? number.to_i
+      puts 'Number is already used. Please type another number:'
+      number = gets.chomp
+    end
+
     Game.change_board(number, letter)
   end
 end
@@ -39,7 +47,11 @@ class Game
     b = @@board
     number = number.to_i - 1
     b[number] = letter
-    @@used_numbers.push number
+    @@used_numbers.push(number + 1)
+  end
+
+  def self.used_numbers
+    @@used_numbers
   end
 
   def self.show_board
